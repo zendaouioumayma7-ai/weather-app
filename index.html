@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stitch Weather App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="auth" class="container">
+        <h1>Weather App</h1>
+        <div id="login">
+            <h2>Login</h2>
+            <input id="user" placeholder="Username">
+            <input id="pass" type="password" placeholder="Password">
+            <button id="login-btn">Login</button>
+            <button id="signup-btn">Sign Up</button>
+        </div>
+    </div>
+
+    <div id="app" class="container" style="display:none">
+        <h1>Weather App <button id="logout">Logout</button></h1>
+
+        <input id="city" placeholder="City">
+        <button id="search">Search</button>
+        <button id="add-fav">Add Favorite</button>
+
+        <div id="weather">
+            <h2 id="loc">City, Country</h2>
+            <p id="temp">25°C</p>
+            <p id="desc">Sunny</p>
+        </div>
+
+        <div id="forecast"></div>
+
+        <h3>Favorites</h3>
+        <select id="filter-temp">
+            <option value="">All Temps</option>
+            <option value="cold">Cold</option>
+            <option value="warm">Warm</option>
+        </select>
+        <select id="filter-weather">
+            <option value="">All Weather</option>
+            <option value="sunny">Sunny</option>
+            <option value="rainy">Rainy</option>
+        </select>
+        <div id="favs"></div>
+    </div>
+
+    <script src="main.js"></script>
+    <script src="auth.js"></script>
+    <script src="weather.js"></script>
+    <script src="favorites.js"></script>
+</body>
+</html>
