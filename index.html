@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stitch Weather App</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Weather App</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -32,8 +31,6 @@
             <p id="desc">Sunny</p>
         </div>
 
-        <div id="forecast"></div>
-
         <h3>Favorites</h3>
         <select id="filter-temp">
             <option value="">All Temps</option>
@@ -48,9 +45,205 @@
         <div id="favs"></div>
     </div>
 
-    <script src="main.js"></script>
-    <script src="auth.js"></script>
-    <script src="weather.js"></script>
-    <script src="favorites.js"></script>
+    <script>
+        const auth = document.getElementById('auth');
+        const app = document.getElementById('app');
+        const userInput = document.getElementById('user');
+        const passInput = document.getElementById('pass');
+        const cityInput = document.getElementById('city');
+        const tempFilter = document.getElementById('filter-temp');
+        const weatherFilter = document.getElementById('filter-weather');
+        const favsDiv = document.getElementById('favs');
+
+        let user = null;
+        let weather = null;
+
+        function init() {
+            const u = localStorage.getItem('user');
+            if (u) {
+                user = JSON.parse(u);
+                showApp();
+            } else {
+                showAuth();
+            }
+            bindEvents();
+        }
+
+        function bindEvents() {
+            document.getElementById('login-btn').onclick = login;
+            document.getElementById('signup-btn').onclick = signup;
+            document.getElementById('logout').onclick = logout;
+            document.getElementById('search').onclick = search;
+            document.getElementById('add-fav').onclick = addFav;
+            tempFilter.onchange = filter;
+            weatherFilter.onchange = filter;
+        }
+
+        function showAuth() {
+            auth.style.display = 'block';
+            app.style.display = 'none';
+        }
+
+        function showApp() {
+            auth.style.display = 'none';
+            app.style.display = 'block';
+            loadFavs();
+            getWeather('Honolulu');
+        }
+        async function login() {
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: userInput.value,
+                        password: passInput.value
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    user = data.user;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    showApp();
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                alert('Login failed');
+            }
+        }
+
+        async function signup() {
+            try {
+                const response = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: userInput.value,
+                        password: passInput.value
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    user = data.user;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    showApp();
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                alert('Signup failed');
+            }
+        }
+
+        function logout() {
+            user = null;
+            localStorage.removeItem('user');
+            showAuth();
+        }
+
+        async function search() {
+            const city = cityInput.value;
+            if (city) await getWeather(city);
+        }
+
+        async function getWeather(city) {
+            try {
+                const response = await fetch(`/api/weather/${city}`);
+                weather = await response.json();
+                document.getElementById('loc').textContent = weather.city;
+                document.getElementById('temp').textContent = weather.temp + '°C';
+                document.getElementById('desc').textContent = weather.desc;
+            } catch (e) {
+                alert('Failed to get weather');
+            }
+        }
+        async function addFav() {
+            if (!weather) return alert('Search first');
+            try {
+                const response = await fetch(`/api/favorites/${user.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(weather)
+                });
+                const data = await response.json();
+                if (data.success) {
+                    loadFavs();
+                } else {
+                    alert('Failed to add favorite');
+                }
+            } catch (e) {
+                alert('Failed to add favorite');
+            }
+        }
+
+        async function loadFavs() {
+            try {
+                const response = await fetch(`/api/favorites/${user.id}`);
+                user.favs = await response.json();
+                const favs = filterFavs();
+                favsDiv.innerHTML = '';
+                favs.forEach(f => {
+                    const div = document.createElement('div');
+                    div.className = 'fav';
+                    div.innerHTML = `<p>${f.city}</p><p>${f.temp}°C ${f.desc}</p><button onclick="editFav(${f.id})">Edit</button><button onclick="delFav(${f.id})">Delete</button>`;
+                    favsDiv.appendChild(div);
+                });
+            } catch (e) {
+                console.error('Load favorites error:', e);
+            }
+        }
+
+        function filterFavs() {
+            let f = user.favs;
+            const t = tempFilter.value;
+            if (t === 'cold') f = f.filter(x => x.temp < 20);
+            if (t === 'warm') f = f.filter(x => x.temp >= 20);
+            const w = weatherFilter.value;
+            if (w) f = f.filter(x => x.desc === w);
+            return f;
+        }
+
+        function filter() {
+            loadFavs();
+        }
+
+        async function editFav(id) {
+            const fav = user.favs.find(f => f.id == id);
+            if (!fav) return;
+            const newCity = prompt('New city name:', fav.city);
+            if (newCity && newCity.trim()) {
+                try {
+                    const response = await fetch(`/api/favorites/${user.id}/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ city: newCity.trim() })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        loadFavs();
+                    }
+                } catch (e) {
+                    alert('Failed to edit favorite');
+                }
+            }
+        }
+
+        async function delFav(id) {
+            try {
+                const response = await fetch(`/api/favorites/${user.id}/${id}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    loadFavs();
+                }
+            } catch (e) {
+                alert('Failed to delete favorite');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>

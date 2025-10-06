@@ -6,7 +6,7 @@ async function search() {
 
 async function getWeather(city) {
     try {
-        const response = await fetch(`http://localhost:3000/api/weather/${city}`);
+        const response = await fetch(`http://localhost:5000/api/weather/${city}`);
         weather = await response.json();
         document.getElementById('loc').textContent = weather.city;
         document.getElementById('temp').textContent = weather.temp + '°C';

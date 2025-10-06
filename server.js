@@ -1,13 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const port = 3000;
+const port = 5000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static('.'));
 
-// In-memory storage (in real app, use database)
+// In-memory storage
 let users = [];
 let weatherData = {};
 
@@ -35,7 +36,6 @@ app.post('/api/signup', (req, res) => {
 
 app.get('/api/weather/:city', (req, res) => {
     const city = req.params.city;
-    // Mock weather data
     const types = ['sunny', 'rainy'];
     const type = types[Math.floor(Math.random() * types.length)];
     const data = {
@@ -47,7 +47,6 @@ app.get('/api/weather/:city', (req, res) => {
             temp: Math.floor(Math.random() * 20) + 15
         }))
     };
-    weatherData[city] = data;
     res.json(data);
 });
 

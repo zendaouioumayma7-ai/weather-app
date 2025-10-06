@@ -2,7 +2,7 @@
 async function addFav() {
     if (!weather) return alert('Search first');
     try {
-        const response = await fetch(`http://localhost:3000/api/favorites/${user.id}`, {
+        const response = await fetch(`http://localhost:5000/api/favorites/${user.id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(weather)
@@ -19,7 +19,7 @@ async function addFav() {
 
 async function loadFavs() {
     try {
-        const response = await fetch(`http://localhost:3000/api/favorites/${user.id}`);
+        const response = await fetch(`http://localhost:5000/api/favorites/${user.id}`);
         user.favs = await response.json();
         const favs = filterFavs();
         favsDiv.innerHTML = '';
@@ -54,7 +54,7 @@ async function editFav(id) {
     const newCity = prompt('New city name:', fav.city);
     if (newCity && newCity.trim()) {
         try {
-            const response = await fetch(`http://localhost:3000/api/favorites/${user.id}/${id}`, {
+            const response = await fetch(`http://localhost:5000/api/favorites/${user.id}/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ city: newCity.trim() })
@@ -72,7 +72,7 @@ async function editFav(id) {
 
 async function delFav(id) {
     try {
-        const response = await fetch(`http://localhost:3000/api/favorites/${user.id}/${id}`, {
+        const response = await fetch(`http://localhost:5000/api/favorites/${user.id}/${id}`, {
             method: 'DELETE'
         });
         const data = await response.json();
